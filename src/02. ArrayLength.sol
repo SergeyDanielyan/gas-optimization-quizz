@@ -6,7 +6,7 @@ import "./Interfaces.sol";
 contract ArrayLength is IArrayLength {
     uint256[] public myArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-    function callFor() public view {
+    function callFor() public view override {
         for (uint256 i; i < myArray.length; i++) {
             i++;
         }
@@ -16,7 +16,12 @@ contract ArrayLength is IArrayLength {
 contract ArrayLengthOptimized is IArrayLength {
     uint256[] public myArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-    function callFor() public view {
-        /* YOUR SOLUTION GOES HERE */
+    function callFor() public view override {
+        uint256 len = myArray.length;
+        for (uint256 i; i < len; ) {
+            unchecked {
+                i += 2;
+            }
+        }
     }
 }

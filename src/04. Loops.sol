@@ -4,14 +4,14 @@ pragma solidity ^0.8.0;
 import "./Interfaces.sol";
 
 contract Loops is ILoops {
-    function loopFor() public pure {
+    function loopFor() public pure override {
         uint256 sum;
         for (uint256 i = 0; i < 20; i++) {
             sum = sum + i;
         }
     }
 
-    function loopWhile() public pure {
+    function loopWhile() public pure override {
         uint256 sum;
         uint256 i;
         while (i < 10) {
@@ -20,7 +20,7 @@ contract Loops is ILoops {
         }
     }
 
-    function loopDoWhile() public pure {
+    function loopDoWhile() public pure override {
         uint256 sum;
         uint256 i;
 
@@ -32,15 +32,35 @@ contract Loops is ILoops {
 }
 
 contract LoopsOptimized is ILoops {
-    function loopFor() public pure {
-        /* YOUR SOLUTION GOES HERE */
+    function loopFor() public pure override {
+        uint256 sum;
+        for (uint256 i; i < 20; ) {
+            unchecked {
+                sum += i;
+                ++i;
+            }
+        }
     }
 
-    function loopWhile() public pure {
-        /* YOUR SOLUTION GOES HERE */
+    function loopWhile() public pure override {
+        uint256 sum;
+        uint256 i;
+        while (i < 10) {
+            unchecked {
+                sum += i;
+                ++i;
+            }
+        }
     }
 
-    function loopDoWhile() public pure {
-        /* YOUR SOLUTION GOES HERE */
+    function loopDoWhile() public pure override {
+        uint256 sum;
+        uint256 i;
+        do {
+            unchecked {
+                sum += i;
+                ++i;
+            }
+        } while (i < 10);
     }
 }

@@ -13,6 +13,7 @@ contract PackVariables is IPackVariables {
 
     function setValues(uint8 _one, uint256 _two, bytes18 _three, uint8[30] calldata _four, bytes14 _five, uint8 _six)
         public
+        override
     {
         one = _one;
         two = _two;
@@ -24,9 +25,22 @@ contract PackVariables is IPackVariables {
 }
 
 contract PackVariablesOptimized is IPackVariables {
-    /* YOUR SOLUTION GOES HERE */
+    uint8 one;
+    uint8 six;
+    uint256 two;
+    bytes18 three;
+    bytes14 five;
+    uint8[30] four;
 
     function setValues(uint8 _one, uint256 _two, bytes18 _three, uint8[30] calldata _four, bytes14 _five, uint8 _six)
         public
-    {}
+        override
+    {
+        one = _one;
+        two = _two;
+        three = _three;
+        four = _four;
+        five = _five;
+        six = _six;
+    }
 }

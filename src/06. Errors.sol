@@ -15,11 +15,22 @@ contract Errors is IErrors {
         owner = msg.sender;
     }
 
-    function call() public view onlyOwner {}
+    function call() public view override onlyOwner {}
 }
 
 contract ErrorsOptimized is IErrors {
-    /* YOUR SOLUTION GOES HERE */
+    error NotOwner();
 
-    function call() public view {}
+    address owner;
+
+    modifier onlyOwner() {
+        if (owner != msg.sender) revert NotOwner();
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function call() public view override onlyOwner {}
 }

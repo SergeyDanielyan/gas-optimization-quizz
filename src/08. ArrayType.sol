@@ -6,7 +6,7 @@ import "./Interfaces.sol";
 contract ArrayType is IArrayType {
     uint256[] array;
 
-    function initArray() public {
+    function initArray() public override {
         for (uint256 i; i < 200; ++i) {
             array.push(i);
         }
@@ -14,7 +14,15 @@ contract ArrayType is IArrayType {
 }
 
 contract ArrayTypeOptimized is IArrayType {
-    /* YOUR SOLUTION GOES HERE */
+    uint256[] array;
 
-    function initArray() public {}
+    function initArray() public override {
+        array = new uint256[](200);
+        for (uint256 i; i < 200; ) {
+            array[i] = i;
+            unchecked {
+                ++i;
+            }
+        }
+    }
 }

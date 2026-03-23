@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-contract MultiSigWalletOptimized {}
-
 contract MultiSigWallet {
     address[] public owners;
     uint256 public required;
@@ -138,6 +136,167 @@ contract MultiSigWallet {
         address[] memory confirmationsTrimmed = new address[](count);
         for (uint256 i = 0; i < count; i++) {
             confirmationsTrimmed[i] = _confirmations[i];
+        }
+
+        return confirmationsTrimmed;
+    }
+}
+
+contract MultiSigWalletOptimized {
+    address[] public owners;
+    uint256 public required;
+
+    struct Transaction {
+        uint256 transactionID;
+        address destination;
+        uint256 value;
+        uint256 confirmationCount;
+        uint256 executionTimestamp;
+        bool executed;
+    }
+
+    Transaction[] public transactions;
+    mapping(uint256 => mapping(address => bool)) public confirmations;
+    mapping(address => bool) private ownerLookup;
+
+    event Deposit(address indexed sender, uint256 value);
+    event Submission(uint256 indexed transactionId);
+    event Confirmation(address indexed owner, uint256 indexed transactionId);
+    event Execution(uint256 indexed transactionId);
+    event ExecutionFailure(uint256 indexed transactionId);
+
+    modifier onlyOwner() {
+        require(ownerLookup[msg.sender], "Not owner");
+        _;
+    }
+
+    modifier transactionExists(uint256 transactionId) {
+        require(transactionId < transactions.length, "Transaction does not exist");
+        _;
+    }
+
+    modifier notConfirmed(uint256 transactionId) {
+        require(!confirmations[transactionId][msg.sender], "Transaction already confirmed");
+        _;
+    }
+
+    modifier notExecuted(uint256 transactionId) {
+        require(!transactions[transactionId].executed, "Transaction already executed");
+        _;
+    }
+
+    constructor(address[] memory _owners, uint256 _required) {
+        require(_owners.length > 0, "Owners required");
+        require(_required > 0 && _required <= _owners.length, "Invalid number of required confirmations");
+
+        uint256 len = _owners.length;
+        for (uint256 i; i < len; ) {
+            address a = _owners[i];
+            require(a != address(0), "Invalid owner");
+            owners.push(a);
+            ownerLookup[a] = true;
+            unchecked {
+                ++i;
+            }
+        }
+
+        required = _required;
+    }
+
+    receive() external payable {
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function submitTransaction(address destination, uint256 value) public onlyOwner {
+        uint256 id = transactions.length;
+        transactions.push(
+            Transaction({
+                transactionID: id,
+                destination: destination,
+                value: value,
+                confirmationCount: 0,
+                executionTimestamp: 0,
+                executed: false
+            })
+        );
+
+        emit Submission(transactions.length);
+    }
+
+    function confirmTransaction(uint256 transactionId)
+        public
+        onlyOwner
+        transactionExists(transactionId)
+        notConfirmed(transactionId)
+    {
+        confirmations[transactionId][msg.sender] = true;
+        Transaction storage txn = transactions[transactionId];
+        unchecked {
+            txn.confirmationCount += 1;
+        }
+
+        emit Confirmation(msg.sender, transactionId);
+
+        if (txn.confirmationCount >= required) {
+            executeTransaction(transactionId);
+        }
+    }
+
+    function executeTransaction(uint256 transactionId)
+        public
+        onlyOwner
+        transactionExists(transactionId)
+        notExecuted(transactionId)
+    {
+        Transaction storage txn = transactions[transactionId];
+        if (txn.confirmationCount >= required) {
+            txn.executed = true;
+
+            (bool success,) = txn.destination.call{value: txn.value}("");
+            if (success) {
+                emit Execution(transactionId);
+            } else {
+                txn.executed = false;
+                emit ExecutionFailure(transactionId);
+            }
+        }
+    }
+
+    function isOwner(address account) public view returns (bool) {
+        return ownerLookup[account];
+    }
+
+    function getTransactionCount() public view returns (uint256) {
+        return transactions.length;
+    }
+
+    function getConfirmations(uint256 transactionId) public view returns (address[] memory) {
+        uint256 olen = owners.length;
+        uint256 count;
+        for (uint256 i; i < olen; ) {
+            if (confirmations[transactionId][owners[i]]) {
+                unchecked {
+                    ++count;
+                }
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        address[] memory confirmationsTrimmed = new address[](count);
+        uint256 idx;
+        for (uint256 i; i < olen; ) {
+            address o = owners[i];
+            if (confirmations[transactionId][o]) {
+                confirmationsTrimmed[idx] = o;
+                unchecked {
+                    ++idx;
+                }
+            }
+            unchecked {
+                ++i;
+            }
         }
 
         return confirmationsTrimmed;

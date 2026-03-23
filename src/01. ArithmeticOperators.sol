@@ -6,7 +6,7 @@ import "./Interfaces.sol";
 contract Addition is IAddition {
     uint256 number = 1;
 
-    function addition(uint256 value) public {
+    function addition(uint256 value) public override {
         number += value;
     }
 }
@@ -14,17 +14,17 @@ contract Addition is IAddition {
 contract Subtraction is ISubtraction {
     uint256 number = 100;
 
-    function subtraction(uint256 value) public {
+    function subtraction(uint256 value) public override {
         number -= value;
     }
 }
 
 contract Division is IDivision {
-    function divisionBy2(uint256 number) public pure returns (uint256) {
+    function divisionBy2(uint256 number) public pure override returns (uint256) {
         return number / 2;
     }
 
-    function divisionBy128(uint256 number) public pure returns (uint256) {
+    function divisionBy128(uint256 number) public pure override returns (uint256) {
         return number / 128;
     }
 }
@@ -32,25 +32,29 @@ contract Division is IDivision {
 contract AdditionOptimized is IAddition {
     uint256 number = 1;
 
-    function addition(uint256 value) public {
-        /* YOUR SOLUTION GOES HERE */
+    function addition(uint256 value) public override {
+        unchecked {
+            number += value;
+        }
     }
 }
 
 contract SubtractionOptimized is ISubtraction {
     uint256 number = 100;
 
-    function subtraction(uint256 value) public {
-        /* YOUR SOLUTION GOES HERE */
+    function subtraction(uint256 value) public override {
+        unchecked {
+            number -= value;
+        }
     }
 }
 
 contract DivisionOptimized is IDivision {
-    function divisionBy2(uint256 number) public pure returns (uint256) {
-        /* YOUR SOLUTION GOES HERE */
+    function divisionBy2(uint256 number) public pure override returns (uint256) {
+        return number >> 1;
     }
 
-    function divisionBy128(uint256 number) public pure returns (uint256) {
-        /* YOUR SOLUTION GOES HERE */
+    function divisionBy128(uint256 number) public pure override returns (uint256) {
+        return number >> 7;
     }
 }
